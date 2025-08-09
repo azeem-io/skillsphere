@@ -18,8 +18,8 @@
         <p class="mt-2 text-sm">{a.bio}</p>
         <form method="POST" action="?/decide" class="mt-3 flex gap-2">
           <input type="hidden" name="id" value={a.id} />
-          <Button name="action" value="approve">Approve</Button>
-          <Button variant="outline" name="action" value="reject">Reject</Button>
+          <Button type="submit" name="action" value="approve">Approve</Button>
+          <Button type="submit" variant="outline" name="action" value="reject">Reject</Button>
         </form>
       </li>
     {/each}

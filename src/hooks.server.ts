@@ -5,14 +5,16 @@ import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/publi
 const PROTECTED = [/^\/dashboard(\/|$)/, /^\/learner(\/|$)/, /^\/mentor(\/|$)/, /^\/admin(\/|$)/];
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// cookie-aware supabase client
+	// cookie-aware supabase client (provide per-cookie helpers so signOut can delete auth cookies)
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
-			getAll: () => event.cookies.getAll(),
-			setAll: (cookies) => {
-				cookies.forEach(({ name, value, options }) => {
-					event.cookies.set(name, value, { ...options, path: '/' });
-				});
+			get: (name) => event.cookies.get(name),
+			set: (name, value, options) => {
+				event.cookies.set(name, value, { ...options, path: '/' });
+			},
+			remove: (name, options) => {
+				// ensure removal uses same path
+				event.cookies.delete(name, { path: '/', ...options });
 			}
 		}
 	});
@@ -45,8 +47,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const session = await event.locals.getSession();
 
-	// 1) If signed in and anywhere under /auth → go to dashboard
-	if (session && path.startsWith('/auth')) {
+	// IMPORTANT: allow /auth/logout to run even if session exists
+	if (session && path.startsWith('/auth') && path !== '/auth/logout') {
 		return new Response(null, { status: 303, headers: { Location: '/dashboard' } });
 	}
 

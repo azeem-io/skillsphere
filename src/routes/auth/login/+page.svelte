@@ -9,7 +9,7 @@
 
 {#if form?.message}
   <Alert class="mb-4">
-    <AlertDescription>{form.message}</AlertDescription>
+    <AlertDescription class="text-red-400">{form.message}</AlertDescription>
   </Alert>
 {/if}
 

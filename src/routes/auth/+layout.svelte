@@ -9,7 +9,7 @@
 	let isLogin = $derived(page.url.pathname.includes('/auth/login'));
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+<div class="flex  items-center justify-center p-6 ">
 	<div class="w-full max-w-md">
 		<div class="mb-6 text-center">
 			<a href="/" class="inline-flex items-center gap-2 text-gray-900">

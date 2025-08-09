@@ -25,14 +25,13 @@ export const actions: Actions = {
     const id = String(form.get('id'));
     const action = String(form.get('action')); 
 
-    // load app
     const { data: app, error } = await locals.supabase
       .from('mentor_applications').select('profile_id').eq('id', id).single();
     if (error) return fail(400, { message: error.message });
 
     if (action === 'approve') {
       await locals.supabase.from('mentor_applications').update({ status:'approved' }).eq('id', id);
-      await locals.supabase.from('profiles').update({ role: 'mentor' }).eq('id', app.profile_id);
+      let {error} = await locals.supabase.from('profiles').update({ role: 'mentor' }).eq('id', app.profile_id);
     } else {
       await locals.supabase.from('mentor_applications').update({ status:'rejected' }).eq('id', id);
     }
