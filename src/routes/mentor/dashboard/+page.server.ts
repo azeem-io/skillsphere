@@ -1,39 +1,41 @@
-import { redirect, fail, type Actions } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals }) => {
   const session = await locals.getSession();
   if (!session) throw redirect(303, '/auth/login?next=/mentor/dashboard');
 
-  const { data: me } = await locals.supabase.from('profiles').select('role').eq('id', session.user.id).single();
+  const { data: me } = await locals.supabase
+    .from('profiles')
+    .select('id, role, timezone')
+    .eq('id', session.user.id)
+    .single();
+
   if (me?.role !== 'mentor') throw redirect(303, '/dashboard');
 
-  const { data: slots } = await locals.supabase
-    .from('availability_slots')
-    .select('*')
-    .eq('mentor_id', session.user.id)
-    .order('start_at');
+  // weekly availability rules
+  const { data: weekly } = await locals.supabase
+    .from('weekly_availability')
+    .select('weekday, start_time, end_time')
+    .eq('mentor_id', me.id)
+    .order('weekday');
 
-  return { slots };
-};
+  // sessions in the next 60 days (used to mark booked days red)
+  const now = new Date();
+  const until = new Date();
+  until.setDate(until.getDate() + 60);
 
-export const actions: Actions = {
-  add: async ({ request, locals }) => {
-    const f = await request.formData();
-    const start_at = new Date(String(f.get('start_at')));
-    const end_at   = new Date(String(f.get('end_at')));
-    const user = await locals.getUser();
-    if (!user) return fail(401, { message: 'Not signed in' });
+  const { data: sess } = await locals.supabase
+    .from('sessions')
+    .select('start_at, status')
+    .eq('mentor_id', me.id)
+    .gte('start_at', now.toISOString())
+    .lte('start_at', until.toISOString())
+    .in('status', ['pending','confirmed']); // treat pending/confirmed as booked
 
-    const { error } = await locals.supabase.from('availability_slots')
-      .insert({ mentor_id: user.id, start_at, end_at });
-    if (error) return fail(400, { message: error.message });
-    return { ok: true };
-  },
-  del: async ({ request, locals }) => {
-    const f = await request.formData();
-    const id = String(f.get('id'));
-    const { error } = await locals.supabase.from('availability_slots').delete().eq('id', id);
-    if (error) return fail(400, { message: error.message });
-    return { ok: true };
-  }
+  // return raw; client will compute the calendar dots
+  return {
+    me,
+    weekly: weekly ?? [],
+    sessions: sess ?? []
+  };
 };
