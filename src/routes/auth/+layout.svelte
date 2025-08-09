@@ -4,10 +4,9 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Tabs, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { page } from '$app/state';
-	export let data: { next: string };
 
-	$: isLogin = page.url.pathname.includes('/auth/login');
-	const nextQ = data.next ? `?next=${encodeURIComponent(data.next)}` : '';
+
+	let isLogin = $derived(page.url.pathname.includes('/auth/login'));
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -31,10 +30,10 @@
 				<Tabs value={isLogin ? 'login' : 'register'} class="mb-5 w-full">
 					<TabsList class="grid w-full grid-cols-2">
 						<TabsTrigger value="login" class="w-full">
-							<a href={'/auth/login' + nextQ} class="w-full text-center">Log in</a>
+							<a href={'/auth/login'} class="w-full text-center">Log in</a>
 						</TabsTrigger>
 						<TabsTrigger value="register" class="w-full">
-							<a href={'/auth/register' + nextQ} class="w-full text-center">Register</a>
+							<a href={'/auth/register'} class="w-full text-center">Register</a>
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>
