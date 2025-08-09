@@ -23,17 +23,17 @@ export const actions: Actions = {
   decide: async ({ request, locals }) => {
     const form = await request.formData();
     const id = String(form.get('id'));
-    const action = String(form.get('action')); 
-
-    const { data: app, error } = await locals.supabase
-      .from('mentor_applications').select('profile_id').eq('id', id).single();
-    if (error) return fail(400, { message: error.message });
+    const action = String(form.get('action'));
 
     if (action === 'approve') {
-      await locals.supabase.from('mentor_applications').update({ status:'approved' }).eq('id', id);
-      let {error} = await locals.supabase.from('profiles').update({ role: 'mentor' }).eq('id', app.profile_id);
+      const { error } = await locals.supabase.rpc('approve_mentor_application', { app_id: id });
+      if (error) return fail(400, { message: error.message });
     } else {
-      await locals.supabase.from('mentor_applications').update({ status:'rejected' }).eq('id', id);
+      const { error } = await locals.supabase
+        .from('mentor_applications')
+        .update({ status:'rejected' })
+        .eq('id', id);
+      if (error) return fail(400, { message: error.message });
     }
     return { ok: true };
   }
