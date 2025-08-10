@@ -34,9 +34,9 @@
 
 <nav
 	class:dashboard={isDashboard}
-	class="top-0 z-30 w-full border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50"
+	class="top-0 z-30 w-full bg-white/70  border-b  backdrop-blur supports-[backdrop-filter]:bg-white/50"
 >
-	<div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+	<div class="mx-auto flex h-14 w-full lg:max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
 		<a href="/" class="flex items-center gap-2 text-lg font-semibold">
 			<span
 				class="inline-block h-6 w-6 rounded bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500"
