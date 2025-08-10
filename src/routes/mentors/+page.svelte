@@ -41,13 +41,8 @@
 		<option value="7" selected={data.day === 7}>Sunday</option>
 	</select>
 
-	<select name="sort" class="rounded-md border p-2">
-		<option value="rating" selected={data.sort === 'rating'}>Top rated</option>
-		<option value="reviews" selected={data.sort === 'reviews'}>Most reviews</option>
-		<option value="name" selected={data.sort === 'name'}>Name A–Z</option>
-	</select>
 
-	<div class="md:col-start-4 md:ml-auto">
+	<div class="">
 		<Button class="w-full">Apply</Button>
 	</div>
 </form>
