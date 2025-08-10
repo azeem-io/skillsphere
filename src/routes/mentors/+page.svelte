@@ -25,11 +25,9 @@
 	}
 </script>
 
-<!-- Filters -->
 <form method="GET" class="mb-6 grid gap-3 md:grid-cols-4">
 	<Input name="q" placeholder="Search mentors (name, bio)…" value={data.q} class="md:col-span-2 h-10" />
 
-	<!-- simple native selects for reliability; swap to shadcn Select if you want -->
 	<select name="day" class="rounded-md border p-2">
 		<option value="">Any day</option>
 		<option value="1" selected={data.day === 1}>Monday</option>
@@ -79,7 +77,6 @@
 							{m.bio || 'No bio yet.'}
 						</p>
 
-						<!-- Bottom (sticky) section -->
 						<div class="mt-auto space-y-2">
 							{#if m.skills?.length || m.tags?.length}
 								<div class="flex flex-wrap gap-1.5 text-[11px]">

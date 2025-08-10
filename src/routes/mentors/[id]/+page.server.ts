@@ -3,27 +3,23 @@ import { fail, redirect, type Actions } from '@sveltejs/kit';
 const ISO_TO_NAME = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; // 1..7
 
 export const load = async ({ locals, params }) => {
-  // Mentor info
   const { data: mentor } = await locals.supabase
     .from('profiles')
     .select('id, name, bio, skills, tags, rating_avg, rating_count, portfolio_url')
     .eq('id', params.id).eq('role', 'mentor').single();
   if (!mentor) return { mentor: null, nextOptions: [] };
 
-  // Weekly rules (now visible due to policy above)
   const { data: weekly } = await locals.supabase
     .from('weekly_availability')
     .select('weekday, start_time, end_time')
     .eq('mentor_id', params.id);
 
-  // Booked dates for NEXT 7 DAYS (local PK time)
   const { data: booked } = await locals.supabase.rpc('mentor_booked_dates', {
     p_mentor: params.id,
     p_days: 7
   });
   const bookedSet = new Set<string>((booked ?? []).map((r: { d: string }) => r.d)); // 'YYYY-MM-DD'
 
-  // Build cards for the next 7 days (inclusive of today)
   const wdSet = new Set<number>((weekly ?? []).map((w: any) => w.weekday));
   const timeByWD = new Map<number, { start: string; end: string }>();
   (weekly ?? []).forEach((w: any) => timeByWD.set(w.weekday, { start: w.start_time, end: w.end_time }));
@@ -41,7 +37,6 @@ for (let i = 0; i < 7; i++) {
   const d = String(cur.getDate()).padStart(2, '0');
   const dateISO = `${y}-${m}-${d}`;
 
-  // formatted label: "Sun, 10 Aug 2025"
   const label = cur.toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
@@ -50,7 +45,7 @@ for (let i = 0; i < 7; i++) {
   });
 
   const t = timeByWD.get(iso)!;
-  const time = `${t.start.slice(0, 5)}–${t.end.slice(0, 5)}`; // no timezone label
+  const time = `${t.start.slice(0, 5)}–${t.end.slice(0, 5)}`; 
   const isBooked = bookedSet.has(dateISO);
 
   options.push({
