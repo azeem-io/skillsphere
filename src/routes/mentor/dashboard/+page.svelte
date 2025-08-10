@@ -133,9 +133,12 @@
 						<label class="text-sm" for="end_time">End time</label>
 						<Input id="end_time" type="time" name="end_time" bind:value={end_time} />
 					</div>
-					<Button class="flex-1 relative" type="submit" disabled={saving} aria-busy={saving}>
+					<Button class="relative flex-1" type="submit" disabled={saving} aria-busy={saving}>
 						{#if saving}
-							<Spinner aria-hidden="true" class="size-4 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+							<Spinner
+								aria-hidden="true"
+								class="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+							/>
 						{/if}
 						<span class:opacity-0={saving} class="transition-opacity">Save pattern</span>
 					</Button>
@@ -262,6 +265,43 @@
 						</li>
 					{/each}
 				</ul>
+			{/if}
+		</CardContent>
+	</Card>
+
+	<Card class="md:col-span-2">
+		<CardHeader><CardTitle>Recent feedback</CardTitle></CardHeader>
+		<CardContent class="space-y-2">
+			{#if data.feedbacks.length === 0}
+				<p class="text-sm text-gray-600">No feedback yet.</p>
+			{:else}
+				<ul class="space-y-2">
+					{#each data.feedbacks as f}
+						<li class="rounded-md border p-3">
+							<div class="flex items-center justify-between">
+								<div class="text-sm">
+									<div class="font-medium">{f.learner?.name ?? 'Learner'}</div>
+									<div class="text-gray-600">
+										{new Date(f.session_start_at).toLocaleString('en-GB', {
+											weekday: 'short',
+											day: 'numeric',
+											month: 'short',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
+										· ⭐ {f.rating ?? '-'}
+									</div>
+								</div>
+								<a href={`/sessions/${f.session_id}`}><Button variant="ghost">Open chat</Button></a>
+							</div>
+							{#if f.comment}
+								<Separator class="my-3" />
+								<div class="text-sm whitespace-pre-wrap">{f.comment}</div>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+				
 			{/if}
 		</CardContent>
 	</Card>

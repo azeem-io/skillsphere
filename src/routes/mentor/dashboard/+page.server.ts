@@ -40,7 +40,51 @@ export const load = async ({ locals }) => {
     .in('status', ['pending','confirmed'])
     .order('start_at');
 
-  return { me, weekly: weekly ?? [], sessions: sess ?? [], sessions_list: list ?? [] };
+  const { data: past } = await locals.supabase
+    .from('sessions')
+    .select(`id, start_at, learner:learner_id ( id, name )`)
+    .eq('mentor_id', me.id)
+    .lte('end_at', now.toISOString())
+    .order('start_at', { ascending: false })
+    .limit(100);
+
+  const pastIds = (past ?? []).map((s) => s.id);
+  let feedbacks: Array<{
+    session_id: string;
+    rating: number | null;
+    comment: string | null;
+    created_at: string;
+    learner: { id: string; name: string | null };
+    session_start_at: string;
+  }> = [];
+
+  if (pastIds.length) {
+    const { data: fb } = await locals.supabase
+      .from('feedback')
+      .select('session_id, rating, comment, created_at')
+      .in('session_id', pastIds)
+      .order('created_at', { ascending: false });
+
+    const sessionMap = new Map<string, { start_at: string; learner: { id: string; name: string | null } }>();
+    (past ?? []).forEach((s) => sessionMap.set(s.id, { start_at: s.start_at, learner: s.learner }));
+
+    feedbacks = (fb ?? [])
+      .map((f) => {
+        const s = sessionMap.get(f.session_id);
+        if (!s) return null;
+        return {
+          session_id: f.session_id,
+          rating: f.rating,
+          comment: f.comment,
+          created_at: f.created_at,
+          learner: s.learner,
+          session_start_at: s.start_at
+        };
+      })
+      .filter(Boolean) as any[];
+  }
+
+  return { me, weekly: weekly ?? [], sessions: sess ?? [], sessions_list: list ?? [], feedbacks };
 };
 
 export const actions = {
@@ -62,9 +106,7 @@ export const actions = {
     }
 
     const weekdays = Array.from(
-      new Set(
-        weekdaysRaw.map((w) => Number(w)).filter((n) => Number.isInteger(n) && n >= 1 && n <= 7)
-      )
+      new Set(weekdaysRaw.map((w) => Number(w)).filter((n) => Number.isInteger(n) && n >= 1 && n <= 7))
     ).sort((a, b) => a - b);
 
     const { data: me } = await locals.supabase
@@ -74,10 +116,7 @@ export const actions = {
       .single();
     if (me?.role !== 'mentor') throw redirect(303, '/dashboard');
 
-    const delRes = await locals.supabase
-      .from('weekly_availability')
-      .delete()
-      .eq('mentor_id', me.id);
+    const delRes = await locals.supabase.from('weekly_availability').delete().eq('mentor_id', me.id);
     if (delRes.error) return fail(500, { error: 'Failed to update availability' });
 
     if (weekdays.length > 0) {

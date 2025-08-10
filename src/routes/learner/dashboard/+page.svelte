@@ -30,6 +30,7 @@
 			status: string;
 			mentor: { id: string; name: string };
 			feedback?: any;
+      ai_summary?: string;
 			ai?: any;
 		}>;
 		applied: boolean;
@@ -72,7 +73,7 @@
 		<CardContent class="space-y-2">
 			<ul class="space-y-2">
 				{#each data.live as s}
-					<li class="flex items-center flex-wrap justify-between rounded-lg border p-3">
+					<li class="flex flex-wrap items-center justify-between rounded-lg border p-3">
 						<div class="text-sm">
 							<div class="font-medium">{s.mentor?.name ?? 'Mentor'}</div>
 							<div class="text-gray-600">
@@ -91,7 +92,9 @@
 								· <Badge variant="secondary" class="ml-1 capitalize">Ongoing</Badge>
 							</div>
 						</div>
-						<a class="flex-1 mt-3 md:mt-0 md:flex-none" href={`/sessions/${s.id}`}><Button class="w-full">Join now</Button></a>
+						<a class="mt-3 flex-1 md:mt-0 md:flex-none" href={`/sessions/${s.id}`}
+							><Button class="w-full">Join now</Button></a
+						>
 					</li>
 				{/each}
 			</ul>
@@ -181,6 +184,11 @@
 								{/if}
 								<a href={`/sessions/${s.id}`}><Button variant="ghost">Open</Button></a>
 							</div>
+
+							{#if s.ai_summary}
+								<Separator class="my-3" />
+								<div class="line-clamp-6 text-sm whitespace-pre-wrap">{s.ai_summary}</div>
+							{/if}
 						</div>
 						{#if s.ai?.summary}
 							<Separator class="my-3" />
