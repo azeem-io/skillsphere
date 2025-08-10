@@ -19,6 +19,19 @@
   let scroller: HTMLDivElement | null = null;
 
   let showFeedback = false;
+  // Feedback dialog state
+  let rating: string = '';
+  let hovered = 0; // hovered star (1-5) for preview
+  let comment = '';
+  const ratingLabels = ['Terrible', 'Poor', 'Okay', 'Good', 'Excellent'];
+  function labelFor(n: number) { return ratingLabels[n - 1] || ''; }
+  function setRating(v: number) { rating = String(v); }
+  function onStarKey(e: KeyboardEvent, idx: number) {
+    const current = Number(rating) || 0;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); setRating(Math.min(5, current + 1)); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); setRating(Math.max(1, current - 1)); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRating(idx); }
+  }
 
   const isMentor = data.me === data.s.mentor_id;
   const isLearner = data.me === data.s.learner_id;
@@ -198,17 +211,59 @@
   {#if isLearner && !data.myFeedback}
     <Dialog open={showFeedback} onOpenChange={(v) => (showFeedback = v)}>
       <DialogContent class="sm:max-w-md">
-        <DialogHeader><DialogTitle>Rate your mentor</DialogTitle></DialogHeader>
-        <form method="POST" action="?/feedback" class="space-y-3">
-          <div class="flex gap-2 text-sm">
-            <label><input class="accent-black" type="radio" name="rating" value="1" required /> 1</label>
-            <label><input class="accent-black" type="radio" name="rating" value="2" /> 2</label>
-            <label><input class="accent-black" type="radio" name="rating" value="3" /> 3</label>
-            <label><input class="accent-black" type="radio" name="rating" value="4" /> 4</label>
-            <label><input class="accent-black" type="radio" name="rating" value="5" /> 5</label>
+        <DialogHeader><DialogTitle class="text-base">Rate your mentor</DialogTitle></DialogHeader>
+        <form method="POST" action="?/feedback" class="space-y-4">
+          <fieldset class="space-y-2" role="radiogroup" aria-label="Rating">
+            <div class="flex items-center justify-between">
+              <legend class="text-sm font-medium">Your rating</legend>
+              {#if rating}<span class="text-xs text-gray-500">{labelFor(Number(rating))} ({rating}/5)</span>{/if}
+            </div>
+            <div class="flex items-center gap-2" on:mouseleave={() => (hovered = 0)}>
+              {#each Array(5) as _, i}
+                <button
+                  type="button"
+                  class="group relative flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-all  hover:scale-105"
+                  aria-label={`Rate ${i + 1} - ${labelFor(i + 1)}`}
+                  aria-pressed={(Number(rating) || 0) === i + 1}
+                  on:mouseenter={() => (hovered = i + 1)}
+                  on:focus={() => (hovered = i + 1)}
+                  on:click={() => setRating(i + 1)}
+                  on:keydown={(e) => onStarKey(e, i + 1)}
+                >
+                  <span class="pointer-events-none text-3xl leading-none transition-colors duration-150 {((hovered || Number(rating)) >= i + 1) ? 'text-yellow-400 ' : 'text-gray-300 group-hover:text-gray-400'}">
+                    {((hovered || Number(rating)) >= i + 1) ? '★' : '☆'}
+                  </span>
+                </button>
+              {/each}
+            </div>
+          </fieldset>
+
+          <div class="space-y-1">
+            <textarea
+              name="comment"
+              rows="4"
+              bind:value={comment}
+              maxlength="500"
+              class="w-full resize-none rounded-md border bg-white/50 p-3 text-sm  focus:border-black focus:outline-none focus:ring-1 focus:ring-black/40"
+              placeholder="Share any feedback about your mentor (optional)"
+            ></textarea>
+            <div class="flex justify-between text-[11px] text-gray-500">
+              <span>{rating ? `You rated ${rating}/5 – ${labelFor(Number(rating))}` : 'Select a star rating (required)'}</span>
+              <span>{comment.length}/500</span>
+            </div>
           </div>
-          <textarea name="comment" rows="3" class="w-full rounded-md border p-2 text-sm" placeholder="Optional comment"></textarea>
-          <DialogFooter><Button type="submit">Submit</Button></DialogFooter>
+
+          <DialogFooter>
+            <div class="flex w-full items-center justify-between gap-3">
+              <button
+                type="button"
+                class="text-xs text-gray-500 underline decoration-dotted hover:text-gray-700 disabled:opacity-40"
+                on:click={() => { rating=''; hovered=0; comment=''; }}
+                disabled={!rating && !comment}
+              >Reset</button>
+              <Button type="submit" disabled={!rating}>Submit</Button>
+            </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
