@@ -34,6 +34,24 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<title>{(() => {
+		const base = 'SkillSphere';
+		const p = page.url.pathname;
+		if (p === '/') return base + ' – Learn & Mentor';
+		if (p.startsWith('/mentors')) return 'Find Mentors – ' + base;
+		if (p.startsWith('/mentor/apply')) return 'Apply as Mentor – ' + base;
+		if (p.startsWith('/learner/dashboard')) return 'Learner Dashboard – ' + base;
+		if (p.startsWith('/mentor/dashboard')) return 'Mentor Dashboard – ' + base;
+		if (p.startsWith('/sessions')) return 'Session – ' + base;
+		if (p.startsWith('/admin')) return 'Admin – ' + base;
+		return base;
+	})()}</title>
+	<meta name="description" content="SkillSphere connects learners with expert mentors for 1:1 sessions, guidance, and skill growth." />
+	<meta property="og:site_name" content="SkillSphere" />
+	<meta property="og:title" content="SkillSphere – Learn & Mentor" />
+	<meta property="og:description" content="Connect with mentors, book sessions, and accelerate your learning journey." />
+	<meta property="og:type" content="website" />
+	<meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <nav class:dashboard={isDashboard} class="top-0 z-30 w-full border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
