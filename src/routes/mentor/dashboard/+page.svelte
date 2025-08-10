@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Calendar } from 'bits-ui';
@@ -8,19 +9,21 @@
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
-	export let data: {
-		me: { id: string; role: string; timezone: string };
-		weekly: Array<{ weekday: number; start_time: string; end_time: string }>;
-		sessions: Array<{ start_at: string; status: string }>;
-		sessions_list: Array<{
-			id: string;
-			start_at: string;
-			end_at: string;
-			status: string;
-			meeting_url?: string | null;
-			learner?: { id: string; name: string | null };
-		}>;
-	};
+	const { data } = $props<{
+		data: {
+			me: { id: string; role: string; timezone: string };
+			weekly: Array<{ weekday: number; start_time: string; end_time: string }>;
+			sessions: Array<{ start_at: string; status: string }>;
+			sessions_list: Array<{
+				id: string;
+				start_at: string;
+				end_at: string;
+				status: string;
+				meeting_url?: string | null;
+				learner?: { id: string; name: string | null };
+			}>;
+		};
+	}>();
 
 	const WEEKDAYS = [
 		{ v: 1, l: 'Mon' },
@@ -34,10 +37,11 @@
 	const pad = (n: number) => String(n).padStart(2, '0');
 	const toKey = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
 
-	let selectedWD = new Set<number>(data.weekly.map((w) => w.weekday));
+	let selectedWD = new Set<number>(data.weekly.map((w: { weekday: number }) => w.weekday));
 	const first = data.weekly[0];
-	let start_time = first?.start_time ?? '19:00';
-	let end_time = first?.end_time ?? '21:00';
+	let start_time = $state(first?.start_time ?? '19:00');
+	let end_time = $state(first?.end_time ?? '21:00');
+	let saving = $state(false);
 
 	function toggleWD(v: number) {
 		if (selectedWD.has(v)) selectedWD.delete(v);
@@ -70,7 +74,7 @@
 	function isDateUnavailable(date: DateValue) {
 		return bookedSet.has(toKey(date.year, date.month, date.day));
 	}
-	let placeholder = today(getLocalTimeZone());
+	let placeholder = $state(today(getLocalTimeZone()));
 
 	const now = new Date();
 	const live = [...data.sessions_list]
@@ -101,7 +105,7 @@
 	<Card>
 		<CardHeader><CardTitle>Weekly availability</CardTitle></CardHeader>
 		<CardContent class="space-y-4">
-			<form method="POST" action="?/save_weekly" class="space-y-4">
+			<form method="POST" action="?/save_weekly" class="space-y-4" onsubmit={() => (saving = true)}>
 				<div class="flex flex-wrap gap-2 space-y-3">
 					{#each WEEKDAYS as d}
 						<label class="cursor-pointer">
@@ -111,7 +115,7 @@
 								value={d.v}
 								class="peer hidden"
 								checked={selectedWD.has(d.v)}
-								on:change={() => toggleWD(d.v)}
+								onchange={() => toggleWD(d.v)}
 							/>
 							<span
 								class="rounded-md border px-3 py-2 text-sm peer-checked:bg-black peer-checked:text-white"
@@ -122,14 +126,19 @@
 				</div>
 				<div class="flex flex-wrap items-end gap-3">
 					<div class="flex-1">
-						<label class="text-sm">Start time</label>
-						<Input type="time" name="start_time" bind:value={start_time} />
+						<label class="text-sm" for="start_time">Start time</label>
+						<Input id="start_time" type="time" name="start_time" bind:value={start_time} />
 					</div>
 					<div class="flex-1">
-						<label class="text-sm">End time</label>
-						<Input type="time" name="end_time" bind:value={end_time} />
+						<label class="text-sm" for="end_time">End time</label>
+						<Input id="end_time" type="time" name="end_time" bind:value={end_time} />
 					</div>
-					<Button class="flex-1" type="submit">Save pattern</Button>
+					<Button class="flex-1 relative" type="submit" disabled={saving} aria-busy={saving}>
+						{#if saving}
+							<Spinner aria-hidden="true" class="size-4 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+						{/if}
+						<span class:opacity-0={saving} class="transition-opacity">Save pattern</span>
+					</Button>
 				</div>
 			</form>
 		</CardContent>

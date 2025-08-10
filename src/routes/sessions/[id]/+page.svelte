@@ -168,7 +168,7 @@
 
 <div
 	bind:this={scroller}
-	class="mb-3 h-[60vh] overflow-auto rounded-md border bg-gradient-to-b from-gray-50 to-white p-4"
+	class="mb-3 h-[70vh] overflow-auto rounded-md border bg-gradient-to-b from-gray-50 to-white p-4"
 >
 	{#each messages as m}
 		<div

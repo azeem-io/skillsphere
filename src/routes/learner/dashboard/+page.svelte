@@ -9,6 +9,13 @@
 	export let data: {
 		me: { id: string; name: string; role: string };
 		app: { id: string; status: 'pending' | 'approved' | 'rejected' } | null;
+		live: Array<{
+			id: string;
+			start_at: string;
+			end_at: string;
+			status: string;
+			mentor: { id: string; name: string };
+		}>;
 		upcoming: Array<{
 			id: string;
 			start_at: string;
@@ -28,18 +35,17 @@
 		applied: boolean;
 	};
 
-	const now = new Date();
+	$: console.log('Learner dashboard data:', { live: data.live, upcoming: data.upcoming });
 
 	onMount(() => {
-		if (data.applied) {
+		if (data.applied)
 			toast.success(
 				'Mentor application submitted successfully! Admin will review your application.'
 			);
-		}
 	});
 
 	function timeUntil(dateIso: string) {
-		const ms = new Date(dateIso).getTime() - now.getTime();
+		const ms = new Date(dateIso).getTime() - Date.now();
 		if (ms <= 0) return 'Starting…';
 		const mins = Math.round(ms / 60000);
 		if (mins < 60) return `${mins} min`;
@@ -49,19 +55,55 @@
 	}
 
 	function withinJoinWindow(startIso: string) {
-		// join becomes "active" 10 minutes before start
 		return new Date(startIso).getTime() - Date.now() <= 10 * 60 * 1000;
 	}
 </script>
 
 <h1 class="mb-4 text-2xl font-semibold">Welcome, {data.me?.name ?? 'Learner'}</h1>
 
-<!-- Upcoming sessions -->
+{#if data.live.length}
+	<Card class="mb-6 border-green-600">
+		<CardHeader>
+			<div class="flex items-center justify-between">
+				<CardTitle>Live now</CardTitle>
+				<Badge class="bg-green-600">live</Badge>
+			</div>
+		</CardHeader>
+		<CardContent class="space-y-2">
+			<ul class="space-y-2">
+				{#each data.live as s}
+					<li class="flex items-center flex-wrap justify-between rounded-lg border p-3">
+						<div class="text-sm">
+							<div class="font-medium">{s.mentor?.name ?? 'Mentor'}</div>
+							<div class="text-gray-600">
+								{new Date(s.start_at).toLocaleString('en-GB', {
+									weekday: 'short',
+									day: 'numeric',
+									month: 'short',
+									hour: '2-digit',
+									minute: '2-digit'
+								})}
+								—
+								{new Date(s.end_at).toLocaleTimeString('en-GB', {
+									hour: '2-digit',
+									minute: '2-digit'
+								})}
+								· <Badge variant="secondary" class="ml-1 capitalize">Ongoing</Badge>
+							</div>
+						</div>
+						<a class="flex-1 mt-3 md:mt-0 md:flex-none" href={`/sessions/${s.id}`}><Button class="w-full">Join now</Button></a>
+					</li>
+				{/each}
+			</ul>
+		</CardContent>
+	</Card>
+{/if}
+
 <Card class="md:col-span-2">
 	<CardHeader>
 		<div class="flex items-center justify-between">
 			<CardTitle>Upcoming sessions</CardTitle>
-			<Button variant="outline" href="/mentors">Book new session</Button>
+			<a href="/mentors"><Button variant="outline">Book new session</Button></a>
 		</div>
 	</CardHeader>
 	<CardContent class="space-y-3">
@@ -76,7 +118,18 @@
 						<div class="text-sm">
 							<div class="font-medium">{s.mentor?.name ?? 'Mentor'}</div>
 							<div class="text-gray-600">
-								{new Date(s.start_at).toLocaleString()} — {new Date(s.end_at).toLocaleTimeString()}
+								{new Date(s.start_at).toLocaleString('en-GB', {
+									weekday: 'short',
+									day: 'numeric',
+									month: 'short',
+									hour: '2-digit',
+									minute: '2-digit'
+								})}
+								—
+								{new Date(s.end_at).toLocaleTimeString('en-GB', {
+									hour: '2-digit',
+									minute: '2-digit'
+								})}
 								· <Badge variant="secondary" class="ml-1 capitalize">{s.status}</Badge>
 							</div>
 							<div class="mt-1 text-xs text-gray-500">Starts in {timeUntil(s.start_at)}</div>
@@ -93,11 +146,8 @@
 	</CardContent>
 </Card>
 
-<!-- Recent history + AI summaries -->
 <Card class="mt-6">
-	<CardHeader>
-		<CardTitle>Recent sessions</CardTitle>
-	</CardHeader>
+	<CardHeader><CardTitle>Recent sessions</CardTitle></CardHeader>
 	<CardContent>
 		{#if data.recent.length === 0}
 			<p class="text-sm text-gray-600">No past sessions yet.</p>
@@ -109,9 +159,18 @@
 							<div class="text-sm">
 								<div class="font-medium">{s.mentor?.name ?? 'Mentor'}</div>
 								<div class="text-gray-600">
-									{new Date(s.start_at).toLocaleString()} — {new Date(
-										s.end_at
-									).toLocaleTimeString()}
+									{new Date(s.start_at).toLocaleString('en-GB', {
+										weekday: 'short',
+										day: 'numeric',
+										month: 'short',
+										hour: '2-digit',
+										minute: '2-digit'
+									})}
+									—
+									{new Date(s.end_at).toLocaleTimeString('en-GB', {
+										hour: '2-digit',
+										minute: '2-digit'
+									})}
 								</div>
 							</div>
 							<div class="flex items-center gap-2">
@@ -123,12 +182,9 @@
 								<a href={`/sessions/${s.id}`}><Button variant="ghost">Open</Button></a>
 							</div>
 						</div>
-
 						{#if s.ai?.summary}
 							<Separator class="my-3" />
-							<div class="line-clamp-6 text-sm whitespace-pre-wrap">
-								{s.ai.summary}
-							</div>
+							<div class="line-clamp-6 text-sm whitespace-pre-wrap">{s.ai.summary}</div>
 						{/if}
 					</li>
 				{/each}
@@ -138,9 +194,7 @@
 </Card>
 
 <Card class="mt-6">
-	<CardHeader>
-		<CardTitle>Become a mentor</CardTitle>
-	</CardHeader>
+	<CardHeader><CardTitle>Become a mentor</CardTitle></CardHeader>
 	<CardContent class="space-y-3">
 		{#if data.me.role === 'mentor'}
 			<p class="text-sm text-gray-600">

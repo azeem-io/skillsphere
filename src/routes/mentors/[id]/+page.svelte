@@ -1,20 +1,27 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
+  import Spinner from '$lib/components/Spinner.svelte';
   import { Badge } from '$lib/components/ui/badge';
   import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
   import Star from '@lucide/svelte/icons/star';
   import Globe from '@lucide/svelte/icons/globe';
   import ExternalLink from '@lucide/svelte/icons/external-link';
 
-  export let data: {
-    mentor: {
-      id: string; name: string; bio: string | null; skills: string[] | null; tags: string[] | null;
-      rating_avg: number | null; rating_count: number | null; timezone: string | null; portfolio_url?: string | null;
-    } | null;
-    nextOptions: Array<{ dateISO: string; weekday: string; time: string; booked: boolean, label: string }>;
-  };
+  const { data } = $props<{
+    data: {
+      mentor: {
+        id: string; name: string; bio: string | null; skills: string[] | null; tags: string[] | null;
+        rating_avg: number | null; rating_count: number | null; timezone: string | null; portfolio_url?: string | null;
+      } | null;
+      nextOptions: Array<{ dateISO: string; weekday: string; time: string; booked: boolean; label: string }>;
+    };
+  }>();
 
-  $: console.log('Mentor data:', data);	
+  $effect(() => { console.log('Mentor data:', data); });
+
+  // Track booking state per option without mutating original data type
+  let booking = $state<Record<string, boolean>>({});
+  function markBooking(id: string) { booking[id] = true; }
 
   function initials(name = '') {
     const parts = name.split(' ').filter(Boolean);
@@ -79,9 +86,14 @@
             {#if o.booked}
               <Button class="w-full" variant="outline" disabled>Booked</Button>
             {:else}
-              <form method="POST" action="?/book_day">
+              <form method="POST" action="?/book_day" onsubmit={() => markBooking(o.dateISO)}>
                 <input type="hidden" name="date" value={o.dateISO} />
-                <Button class="w-full" type="submit">Book</Button>
+                  <Button class="w-full relative" type="submit" disabled={booking[o.dateISO]} aria-busy={booking[o.dateISO]}>
+                    {#if booking[o.dateISO]}
+                      <Spinner aria-hidden="true" class="size-4 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    {/if}
+                    <span class:opacity-0={booking[o.dateISO]} class="transition-opacity">Book</span>
+                  </Button>
               </form>
             {/if}
           </CardContent>
