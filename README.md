@@ -1,38 +1,50 @@
-# sv
+# SkillSphere — LoopVerse Submission
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+[Last code edit @ 9:04PM]
 
-## Creating a project
+Made by Azeem Sarwar for LoopVerse
 
-If you're seeing this, you've probably already done this step. Congrats!
+Website Link: https://skillsphere-education.vercel.app
 
-```sh
-# create a new project in the current directory
-npx sv create
+Demo Video Link: Processing...
 
-# create a new project in my-app
-npx sv create my-app
+PDF File Link: [Open](https://github.com/azeem-io/skillsphere/blob/main/SkillSphere%20-%20Azeem%20Sarwar.pdf)
+
+## Tech
+- **SvelteKit v4 + TS**, TailwindCSS, shadcn-svelte (Bits UI)
+- **Supabase**: Auth, Postgres, Realtime, Storage
+- **OpenAI**: gpt-4o-mini (session summary on end)
+
+## Quick Start (local)
+```bash
+pnpm i
+# or npm i / bun i
+```
+Create `.env`:
+```
+PUBLIC_SUPABASE_URL=...
+PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+OPENAI_API_KEY=sk-...
+```
+Run:
+```bash
+pnpm dev
+# http://localhost:5173
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+## Folders (skim)
 ```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
+src/
+  lib/components/ui/       # shadcn/Bits UI
+  lib/supabase/client.ts   # browser client
+  routes/
+    auth/                  # login/register/logout
+    learner/dashboard/
+    mentor/dashboard/      # availability, live/upcoming, feedback
+    mentor/apply/
+    mentors/[id]/          # profile + booking cards
+    sessions/[id]/         # chat + end session + feedback
+    admin/                 # mentor approvals
+    api/upload/+server.ts  # image -> Storage
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
