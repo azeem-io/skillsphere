@@ -10,6 +10,11 @@ Demo Video Link: Processing...
 
 PDF File Link: [Open](https://github.com/azeem-io/skillsphere/blob/main/SkillSphere%20-%20Azeem%20Sarwar.pdf)
 
+### Demo Accounts:
+- Admin: admin@skilspree.com 123456
+- Mentor: ahmed@skillspree.com 123456
+- Learner: haris@gmail.com 123456
+
 ## Tech
 - **SvelteKit v4 + TS**, TailwindCSS, shadcn-svelte (Bits UI)
 - **Supabase**: Auth, Postgres, Realtime, Storage
